@@ -50,7 +50,10 @@ jobs:
           java-version: ${{ matrix.java }}
           cache: maven
       - name: Compilar y verificar
-        run: mvn -B verify
+        run: mvn -B -DskipTests verify
+      - name: Resumen de pruebas (falla si hay cero)
+        if: always()
+        run: python3 ../scripts/resumen-pruebas.py "API - Java ${{ matrix.java }}" "target/surefire-reports/TEST-*.xml" | tee -a "$GITHUB_STEP_SUMMARY"
       - name: Guardar informes de pruebas y cobertura
         if: always() && matrix.java == 17
         uses: actions/upload-artifact@v4
@@ -95,7 +98,10 @@ jobs:
       - name: Formato (Prettier)
         run: npm run format:check
       - name: Pruebas con cobertura (Vitest)
-        run: npm run test:coverage
+        run: npm run test:coverage -- --reporter=default --reporter=junit --outputFile.junit=reports/junit.xml
+      - name: Resumen de pruebas (falla si hay cero)
+        if: always()
+        run: python3 ../scripts/resumen-pruebas.py "Web - Node ${{ matrix.node }}" "reports/junit.xml" | tee -a "$GITHUB_STEP_SUMMARY"
       - name: Build de produccion
         run: npm run build
       - name: Guardar informes
